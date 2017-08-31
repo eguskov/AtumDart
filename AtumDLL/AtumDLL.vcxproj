@@ -1,0 +1,250 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{86E1102E-F7DB-4C05-9EAD-510F473D72C5}</ProjectGuid>
+    <RootNamespace>AtumDLL</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>Atum</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>D:\Projects\Atum\Libraries\EUI\include;D:\Projects\Atum\Libraries\PhysX\Include;D:\Projects\Atum\Atum;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;PLATFORM_PC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>dxgi.lib;d3d11.lib;dxguid.lib;d3dcompiler.lib;dinput8.lib;comctl32.lib;user32.lib;EUI\lib\EUI_DEBUGx64.lib;PhysX\Lib\vc14win64\PhysX3DEBUG_x64.lib;PhysX\Lib\vc14win64\PhysX3CommonDEBUG_x64.lib;PhysX\Lib\vc14win64\PhysX3ExtensionsDEBUG.lib;PhysX\Lib\vc14win64\PhysX3CookingDEBUG_x64.lib;PhysX\Lib\vc14win64\PxFoundationDEBUG_x64.lib;PhysX\Lib\vc14win64\PhysX3CharacterKinematicDEBUG_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Projects\Atum\Libraries;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <Lib>
+      <AdditionalDependencies>dxgi.lib;d3d11.lib;dxguid.lib;d3dcompiler.lib;dinput8.lib;comctl32.lib;user32.lib;EUI\lib\EUI_DEBUGx64.lib;PhysX\Lib\vc14win64\PhysX3DEBUG_x64.lib;PhysX\Lib\vc14win64\PhysX3CommonDEBUG_x64.lib;PhysX\Lib\vc14win64\PhysX3ExtensionsDEBUG.lib;PhysX\Lib\vc14win64\PhysX3CookingDEBUG_x64.lib;PhysX\Lib\vc14win64\PxFoundationDEBUG_x64.lib;PhysX\Lib\vc14win64\PhysX3CharacterKinematicDEBUG_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Projects\Atum\Libraries;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\correction.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\hovertank.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\model.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\PathFinder\AStar.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\PathFinder\PathFinder.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\PathFinder\Vec2.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\PhysBox.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\plane.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\programs.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\quad.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\scene2.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\tank.h" />
+    <ClInclude Include="..\..\Atum\Atum\SceneObjects\terrain.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Controls\Controls.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Physics\PhysController.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Physics\PhysHeightmap.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Physics\Physics.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Physics\PhysObject.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Physics\PhysScene.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\Debug\Debug.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\Debug\DebugBoxes.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\Debug\DebugLines.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\Debug\DebugPrograms.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\Debug\DebugSpheres.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\Device.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\DX11\DeviceDX11.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\DX11\GeometryBufferDX11.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\DX11\ShaderDX11.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\DX11\TextureDX11.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\GeometryBuffer.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\Program.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\Render.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\Shader.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Render\Texture.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Scene\Scene.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\Scene\SceneObject.h" />
+    <ClInclude Include="..\..\Atum\Atum\Services\TaskExecutor\TaskExecutor.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\Buffer.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\ClassFactory.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\Color.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\Delegate.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\ExceptionReport.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\json\block_allocator.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\json\json.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\json\JSONReader.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\json\JSONWriter.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\Matrix.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\MetaData\BoolWidget.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\MetaData\ColorWidget.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\MetaData\EnumWidget.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\MetaData\FileNameWidget.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\MetaData\FloatWidget.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\MetaData\IntWidget.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\MetaData\MetaData.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\MetaData\ProperyWidget.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\MetaData\StringWidget.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\Quaternion.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\StringUtils.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\Support.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\Timer.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\Vector.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\Vector2.h" />
+    <ClInclude Include="..\..\Atum\Atum\Support\Vector4.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\correction.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\hovertank.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\model.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\PathFinder\AStar.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\PathFinder\PathFinder.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\PhysBox.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\plane.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\programs.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\quad.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\scene2.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\tank.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\SceneObjects\terrain.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Controls\Controls.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Physics\PhysController.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Physics\PhysHeightmap.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Physics\Physics.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Physics\PhysObject.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Physics\PhysScene.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Render\Debug\DebugBoxes.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Render\Debug\DebugLines.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Render\Debug\DebugPrograms.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Render\Debug\DebugSpheres.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Render\DX11\DeviceDX11.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Render\DX11\GeometryBufferDX11.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Render\DX11\ShaderDX11.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Render\DX11\TextureDX11.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Render\Program.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Render\Render.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Scene\Scene.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\Scene\SceneObject.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Services\TaskExecutor\TaskExecutor.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\ExceptionReport.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\json\block_allocator.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\json\json.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\json\JSONReader.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\json\JSONWriter.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\MetaData\BoolWidget.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\MetaData\ColorWidget.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\MetaData\EnumWidget.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\MetaData\FileNameWidget.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\MetaData\FloatWidget.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\MetaData\IntWidget.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\MetaData\MetaData.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\MetaData\ProperyWidget.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\MetaData\StringWidget.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\StringUtils.cpp" />
+    <ClCompile Include="..\..\Atum\Atum\Support\Timer.cpp" />
+    <ClCompile Include="dllMain.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
