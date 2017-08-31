@@ -5,8 +5,8 @@
 library atum_extension;
 
 import 'dart:async';
-import 'atum_extension.dart';
 
+import 'package:atum/atum_extension.dart';
 import 'package:vector_math/vector_math.dart';
 
 void check(bool condition, String message) {
@@ -163,9 +163,9 @@ main() {
         'object[$i]: name: ${object.getName()}; class: ${object.getClassName()}');
   }
 
-  // var m = scene.getObject(0).trans;
-  // print(m);
-  // scene.getObject(0).trans = m;
+  var m = scene.getObject(0).trans;
+  print(m);
+  scene.getObject(0).trans = m;
 
   alias_forward = core.controlsGetAlias("MOVE_FORWARD");
   alias_strafe = core.controlsGetAlias("MOVE_STRAFE");

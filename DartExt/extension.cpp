@@ -202,12 +202,145 @@ decltype(NativeLookup::functions) NativeLookup::functions;
 #define STR(a) #a
 #define CONCAT(a, b) STR(a) STR(::) STR(b)
 #define NATIVE_METHOD(cls, method) NativeFunction(CONCAT(cls, method), nativeCall<cls, &cls::method>)
-#define NATIVE_METHOD_WITH_ARGS(cls, method, ...) NativeFunction(CONCAT(cls, method), nativeCall<cls, __VA_ARGS__, &cls::method>)
+#define NATIVE_METHOD_WITH_ARGS(cls, method, ...) NativeFunction(CONCAT(cls, method), nativeCall<cls, decltype(&cls::method), &cls::method, __VA_ARGS__>)
 #define NATIVE_FUNC(cls, func) NativeFunction(CONCAT(cls, func), cls::func)
 #define NATIVE_CTOR(cls) NativeFunction(CONCAT(cls, cls), newInstance<cls>)
 #define NATIVE_METHOD_LIST(cls, ...) \
   static std::array<NativeFunction, argsCount(__VA_ARGS__)> native##cls = { { __VA_ARGS__ } }; \
   struct native##cls##_pushToNativeLookup { native##cls##_pushToNativeLookup() { NativeLookup::push(native##cls); }} native##cls##_push;
+
+template<typename T>
+static inline void toValue(Dart_Handle argHandle, T& argValue)
+{
+  static_assert(false, "Fuck, this shit! Missed implementation for type!");
+}
+
+template<>
+static inline void toValue(Dart_Handle argHandle, const char*& argValue)
+{
+  Dart_StringToCString(argHandle, &argValue);
+}
+
+template<>
+static inline void toValue(Dart_Handle argHandle, Dart_Handle& argValue)
+{
+  argValue = argHandle;
+}
+
+template<>
+static inline void toValue(Dart_Handle argHandle, int& argValue)
+{
+  int64_t v = 0;
+  Dart_IntegerToInt64(argHandle, &v);
+  argValue = (int)v;
+}
+
+template<>
+static inline void toValue(Dart_Handle argHandle, Vector& argValue)
+{
+  Dart_TypedData_Type dataTypeUnused;
+  void* dataLocation;
+  intptr_t dataLengthUnused;
+  Dart_TypedDataAcquireData(argHandle, &dataTypeUnused, &dataLocation, &dataLengthUnused);
+
+  ::memcpy(argValue.v, dataLocation, sizeof(Vector));
+
+  Dart_TypedDataReleaseData(argHandle);
+}
+
+template<>
+static inline void toValue(Dart_Handle argHandle, Matrix& argValue)
+{
+  Dart_TypedData_Type data_type_unused;
+  void* data_location;
+  intptr_t data_length_unused;
+  Dart_TypedDataAcquireData(argHandle, &data_type_unused, &data_location, &data_length_unused);
+
+  ::memcpy(argValue.matrix, data_location, sizeof(float) * 16);
+
+  Dart_TypedDataReleaseData(argHandle);
+}
+
+template<typename T>
+static inline T toValue(Dart_NativeArguments arguments, size_t index)
+{
+  Dart_Handle handle = Dart_GetNativeArgument(arguments, (int)index);
+  T value;
+  toValue(handle, value);
+  return value;
+}
+
+template<typename T>
+static inline Dart_Handle fromValue(const T& value)
+{
+  static_assert(false, "Fuck, this shit! Missed implementation for type!");
+  return Dart_Null();
+}
+
+template<>
+static inline Dart_Handle fromValue(const int& value)
+{
+  return Dart_NewInteger(value);
+}
+
+template<>
+static inline Dart_Handle fromValue(const char * const & value)
+{
+  return Dart_NewStringFromCString(value);
+}
+
+template<>
+static inline Dart_Handle fromValue(const Vector& value)
+{
+  Dart_Handle list = Dart_NewTypedData(Dart_TypedData_kFloat32, 3);
+
+  Dart_TypedData_Type dataTypeUnused;
+  void* dataLocation;
+  intptr_t dataLengthUnused;
+  Dart_TypedDataAcquireData(list, &dataTypeUnused, &dataLocation, &dataLengthUnused);
+
+  ::memcpy(dataLocation, value.v, sizeof(value));
+
+  Dart_TypedDataReleaseData(list);
+
+  return HandleError(list);
+}
+
+template<>
+static inline Dart_Handle fromValue(const Matrix& value)
+{
+  Dart_Handle list = Dart_NewTypedData(Dart_TypedData_kFloat32, 16);
+
+  Dart_TypedData_Type dataTypeUnused;
+  void* dataLocation;
+  intptr_t dataLengthUnused;
+  Dart_TypedDataAcquireData(list, &dataTypeUnused, &dataLocation, &dataLengthUnused);
+
+  ::memcpy(dataLocation, value.matrix, sizeof(value));
+
+  Dart_TypedDataReleaseData(list);
+
+  return HandleError(list);
+}
+
+template <typename PeerT, typename Method, typename... Args, size_t... I>
+static inline void nativeCallImpl(Dart_NativeArguments arguments, Method method, std::index_sequence<I...>)
+{
+  Dart_EnterScope();
+  Dart_SetReturnValue(arguments, Dart_Null());
+  if (intptr_t peer = getPeer(arguments))
+  {
+    Dart_Handle ret = (((PeerT*)peer)->*method)(toValue<Args>(arguments, I + 1)...);
+    Dart_SetReturnValue(arguments, HandleError(ret));
+  }
+  Dart_ExitScope();
+}
+
+template<typename T, typename Method, Method method, typename... Args>
+void nativeCall(Dart_NativeArguments arguments)
+{
+  nativeCallImpl<T, Method, Args...>(arguments, method, std::make_index_sequence<sizeof...(Args)>{});
+}
 
 template<typename T, Dart_Handle(T::*Method)()>
 void nativeCall(Dart_NativeArguments arguments)
@@ -220,74 +353,6 @@ void nativeCall(Dart_NativeArguments arguments)
     Dart_SetReturnValue(arguments, HandleError(ret));
   }
   Dart_ExitScope();
-}
-
-template<typename T>
-static inline void nativeArgumentValue(Dart_Handle argHandle, T& argValue)
-{
-}
-
-template<>
-static inline void nativeArgumentValue(Dart_Handle argHandle, const char*& argValue)
-{
-  Dart_StringToCString(argHandle, &argValue);
-}
-
-template<>
-static inline void nativeArgumentValue(Dart_Handle argHandle, Dart_Handle& argValue)
-{
-  argValue = argHandle;
-}
-
-template<>
-static inline void nativeArgumentValue(Dart_Handle argHandle, int& argValue)
-{
-  int64_t v = 0;
-  Dart_IntegerToInt64(argHandle, &v);
-  argValue = v;
-}
-
-template<typename T>
-static inline typename T::type nativeArgument(Dart_NativeArguments arguments)
-{
-  size_t i = typename T::index;
-
-  Dart_Handle handle = Dart_GetNativeArgument(arguments, typename T::index);
-  T::type value;
-  nativeArgumentValue(handle, value);
-  return value;
-}
-
-template <typename T, size_t Idx>
-struct _Arg
-{
-  typedef T type;
-  static const size_t index = Idx;
-};
-
-template<typename T, typename Method, typename... Args>
-void nativeCallInner(Dart_NativeArguments arguments, const Method& method)
-{
-  Dart_EnterScope();
-  Dart_SetReturnValue(arguments, Dart_Null());
-  if (intptr_t peer = getPeer(arguments))
-  {
-    Dart_Handle ret = (((T*)peer)->*method)(nativeArgument<Args>(arguments)...);
-    Dart_SetReturnValue(arguments, HandleError(ret));
-  }
-  Dart_ExitScope();
-}
-
-template<typename T, typename Arg1, Dart_Handle(T::*Method)(Arg1 arg)>
-void nativeCall(Dart_NativeArguments arguments)
-{
-  nativeCallInner<T, decltype(Method), _Arg<Arg1, 1>>(arguments, Method);
-}
-
-template<typename T, typename Arg1, typename Arg2, Dart_Handle(T::*Method)(Arg1 arg1, Arg2 arg2)>
-void nativeCall(Dart_NativeArguments arguments)
-{
-  nativeCallInner<T, decltype(Method), _Arg<Arg1, 1>, _Arg<Arg2, 2>>(arguments, Method);
 }
 
 template <typename T>
@@ -385,48 +450,24 @@ public:
 
   Dart_Handle getTrans()
   {
-    Matrix& m = object->Trans();
-
-    Dart_Handle h = Dart_RootLibrary();
-    Dart_Handle hm = HandleError(Dart_GetClass(h, Dart_NewStringFromCString("Matrix4")));
-
-    Dart_Handle list = Dart_NewTypedData(Dart_TypedData_kFloat32, 16);
-
-    Dart_TypedData_Type data_type_unused;
-    void* data_location;
-    intptr_t data_length_unused;
-    Dart_TypedDataAcquireData(list, &data_type_unused, &data_location, &data_length_unused);
-
-    ::memcpy(data_location, m.matrix, sizeof(float) * 16);
-    Dart_TypedDataReleaseData(list);
-
-    Dart_Handle matObject = HandleError(Dart_Allocate(hm));
-    return HandleError(Dart_InvokeConstructor(matObject, Dart_NewStringFromCString("fromFloat32List"), 1, &list));
+    return fromValue(object->Trans());
   }
 
-  Dart_Handle setTrans(Dart_Handle mat4)
+  Dart_Handle setTrans(const Matrix& mat)
   {
-    Dart_TypedData_Type data_type_unused;
-    void* data_location;
-    intptr_t data_length_unused;
-    Dart_TypedDataAcquireData(mat4, &data_type_unused, &data_location, &data_length_unused);
-
-    Matrix& m = object->Trans();
-
-    ::memcpy(m.matrix, data_location, sizeof(float) * 16);
-    Dart_TypedDataReleaseData(mat4);
-
+    if (object->Playing())
+      object->Trans() = mat;
     return Dart_Null();
   }
 
   Dart_Handle getName()
   {
-    return Dart_NewStringFromCString(object->GetName());
+    return fromValue(object->GetName());
   }
 
   Dart_Handle getClassName()
   {
-    return Dart_NewStringFromCString(object->GetClassName());
+    return fromValue(object->GetClassName());
   }
 };
 
@@ -434,7 +475,7 @@ NATIVE_METHOD_LIST(AtumSceneObject,
   NATIVE_CTOR(AtumSceneObject),
   NATIVE_METHOD_WITH_ARGS(AtumSceneObject, cast, Dart_Handle),
   NATIVE_METHOD(AtumSceneObject, getTrans),
-  NATIVE_METHOD_WITH_ARGS(AtumSceneObject, setTrans, Dart_Handle),
+  NATIVE_METHOD_WITH_ARGS(AtumSceneObject, setTrans, Matrix),
   NATIVE_METHOD(AtumSceneObject, getName),
   NATIVE_METHOD(AtumSceneObject, getClassName));
 
@@ -443,58 +484,24 @@ class AtumTank : public AtumSceneObject
 public:
   Dart_Handle getAngles()
   {
-    if (!object->Playing())
-      return Dart_Null();
+    if (object->Playing())
+      return fromValue(((Tank*)object)->angles);
 
-    ((Tank*)object)->angles;
-
-    Dart_Handle h = Dart_RootLibrary();
-    Dart_Handle hm = HandleError(Dart_GetClass(h, Dart_NewStringFromCString("Vector3")));
-
-    Dart_Handle list = Dart_NewTypedData(Dart_TypedData_kFloat32, 3);
-
-    Dart_TypedData_Type data_type_unused;
-    void* data_location;
-    intptr_t data_length_unused;
-    Dart_TypedDataAcquireData(list, &data_type_unused, &data_location, &data_length_unused);
-
-    ::memcpy(data_location, ((Tank*)object)->angles.v, sizeof(Vector));
-    Dart_TypedDataReleaseData(list);
-
-    Dart_Handle matObject = HandleError(Dart_Allocate(hm));
-    return HandleError(Dart_InvokeConstructor(matObject, Dart_NewStringFromCString("fromFloat32List"), 1, &list));
+    return Dart_Null();
   }
 
-  Dart_Handle setAngles(Dart_Handle vec3)
+  Dart_Handle setAngles(const Vector& angles)
   {
-    if (!object->Playing())
-      return Dart_Null();
+    if (object->Playing())
+     ((Tank*)object)->angles = angles;
 
-    Dart_TypedData_Type data_type_unused;
-    void* data_location;
-    intptr_t data_length_unused;
-    Dart_TypedDataAcquireData(vec3, &data_type_unused, &data_location, &data_length_unused);
-
-    ::memcpy(((Tank*)object)->angles.v, data_location, sizeof(Vector));
-
-    Dart_TypedDataReleaseData(vec3);
+    return Dart_Null();
   }
 
-  Dart_Handle move(Dart_Handle vec3)
+  Dart_Handle move(const Vector& dir)
   {
-    if (!object->Playing())
-      return Dart_Null();
-
-    Dart_TypedData_Type data_type_unused;
-    void* data_location;
-    intptr_t data_length_unused;
-    Dart_TypedDataAcquireData(vec3, &data_type_unused, &data_location, &data_length_unused);
-
-    Vector dir;
-    ::memcpy(dir.v, data_location, sizeof(Vector));
-    ((Tank*)object)->controller->Move(dir);
-
-    Dart_TypedDataReleaseData(vec3);
+    if (object->Playing())
+      ((Tank*)object)->controller->Move(dir);
 
     return Dart_Null();
   }
@@ -503,8 +510,8 @@ public:
 NATIVE_METHOD_LIST(AtumTank,
   NATIVE_CTOR(AtumTank),
   NATIVE_METHOD(AtumTank, getAngles),
-  NATIVE_METHOD_WITH_ARGS(AtumTank, setAngles, Dart_Handle),
-  NATIVE_METHOD_WITH_ARGS(AtumTank, move, Dart_Handle));
+  NATIVE_METHOD_WITH_ARGS(AtumTank, setAngles, Vector),
+  NATIVE_METHOD_WITH_ARGS(AtumTank, move, Vector));
 
 class AtumScene : public RefCount
 {
@@ -551,7 +558,7 @@ public:
 
   Dart_Handle getObjectsCount()
   {
-    return Dart_NewInteger(scene->GetObjectsCount());
+    return fromValue(scene->GetObjectsCount());
   }
 };
 
@@ -728,7 +735,7 @@ public:
     if (m.wndMessage == WM_CREATE)
     {
       controls.Init(mainWnd->GetNative(), "settings/controls/hardware_pc", "settings/controls/user_pc");
-      render.Init("DX11", mainWnd->GetWidth(), mainWnd->GetHeight(), mainWnd->GetNative());
+      render.Init("DX11", (int)mainWnd->GetWidth(), (int)mainWnd->GetHeight(), mainWnd->GetNative());
 
       render.AddExecutedLevelPool(1);
 

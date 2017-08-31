@@ -3,3 +3,4 @@ Debug
 .pub
 .packages
 /*.db
+/*.opendb

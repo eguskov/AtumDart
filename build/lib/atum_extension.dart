@@ -148,7 +148,8 @@ class AtumCore extends _Native {
 }
 
 class AtumSceneObject extends _NativeWithoutServicePort {
-  Matrix4 get trans native "AtumSceneObject::getTrans";
+  Float32List _getTrans() native "AtumSceneObject::getTrans";
+  Matrix4 get trans => new Matrix4.fromFloat32List(_getTrans());
 
   _setTrans(Float32List m) native "AtumSceneObject::setTrans";
   void set trans(Matrix4 m) => _setTrans(m.storage);
@@ -163,9 +164,10 @@ class AtumSceneObject extends _NativeWithoutServicePort {
 }
 
 class AtumTank extends AtumSceneObject { 
-  Vector3 get angles native "AtumTank::getAngles";
+  Float32List _getAngles() native "AtumTank::getAngles";
+  Vector3 get angles => new Vector3.fromFloat32List(_getAngles());
 
-  _setAngles(Float32List v) native "AtumTank::setAngles";
+  _setAngles(Float32List) native "AtumTank::setAngles";
   void set angles(Vector3 v) => _setAngles(v.storage);
 
   _move(Float32List m) native "AtumTank::move";
