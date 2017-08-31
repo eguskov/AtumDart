@@ -199,11 +199,18 @@ struct NativeLookup
 
 decltype(NativeLookup::functions) NativeLookup::functions;
 
+// NativeFunction(CONCAT(cls, method), nativeCall<cls, &cls::method>)
+// NativeFunction(CONCAT(cls, method), nativeCall<cls, decltype(&cls::method), &cls::method, __VA_ARGS__>)
+
+//#define NRGS(cls, method, ...) &cls::method
+//#define ARGS(cls, method, ...) decltype(&cls::method), &cls::method, __VA_ARGS__
+//#define NATIVE_METHOD1(args, cls, method, ...) NativeFunction(CONCAT(cls, method), nativeCall<cls, args(cls, method, __VA_ARGS__)>)
+
+
 #define STR(a) #a
 #define CONCAT(a, b) STR(a) STR(::) STR(b)
-#define NATIVE_METHOD(cls, method) NativeFunction(CONCAT(cls, method), nativeCall<cls, &cls::method>)
-#define NATIVE_METHOD_WITH_ARGS(cls, method, ...) NativeFunction(CONCAT(cls, method), nativeCall<cls, decltype(&cls::method), &cls::method, __VA_ARGS__>)
-#define NATIVE_FUNC(cls, func) NativeFunction(CONCAT(cls, func), cls::func)
+#define NATIVE_METHOD(cls, method, ...) NativeFunction(CONCAT(cls, method), nativeCall<cls, decltype(&cls::method), &cls::method, __VA_ARGS__>)
+#define NATIVE_FUNCON(cls, func) NativeFunction(CONCAT(cls, func), cls::func)
 #define NATIVE_CTOR(cls) NativeFunction(CONCAT(cls, cls), newInstance<cls>)
 #define NATIVE_METHOD_LIST(cls, ...) \
   static std::array<NativeFunction, argsCount(__VA_ARGS__)> native##cls = { { __VA_ARGS__ } }; \
@@ -473,9 +480,9 @@ public:
 
 NATIVE_METHOD_LIST(AtumSceneObject,
   NATIVE_CTOR(AtumSceneObject),
-  NATIVE_METHOD_WITH_ARGS(AtumSceneObject, cast, Dart_Handle),
+  NATIVE_METHOD(AtumSceneObject, cast, Dart_Handle),
   NATIVE_METHOD(AtumSceneObject, getTrans),
-  NATIVE_METHOD_WITH_ARGS(AtumSceneObject, setTrans, Matrix),
+  NATIVE_METHOD(AtumSceneObject, setTrans, Matrix),
   NATIVE_METHOD(AtumSceneObject, getName),
   NATIVE_METHOD(AtumSceneObject, getClassName));
 
@@ -510,8 +517,8 @@ public:
 NATIVE_METHOD_LIST(AtumTank,
   NATIVE_CTOR(AtumTank),
   NATIVE_METHOD(AtumTank, getAngles),
-  NATIVE_METHOD_WITH_ARGS(AtumTank, setAngles, Vector),
-  NATIVE_METHOD_WITH_ARGS(AtumTank, move, Vector));
+  NATIVE_METHOD(AtumTank, setAngles, Vector),
+  NATIVE_METHOD(AtumTank, move, Vector));
 
 class AtumScene : public RefCount
 {
@@ -564,9 +571,9 @@ public:
 
 NATIVE_METHOD_LIST(AtumScene,
   NATIVE_CTOR(AtumScene),
-  NATIVE_METHOD_WITH_ARGS(AtumScene, addObject, Dart_Handle, const char*),
-  NATIVE_METHOD_WITH_ARGS(AtumScene, load, const char*),
-  NATIVE_METHOD_WITH_ARGS(AtumScene, getObject, Dart_Handle, int),
+  NATIVE_METHOD(AtumScene, addObject, Dart_Handle, const char*),
+  NATIVE_METHOD(AtumScene, load, const char*),
+  NATIVE_METHOD(AtumScene, getObject, Dart_Handle, int),
   NATIVE_METHOD(AtumScene, getObjectsCount),
   NATIVE_METHOD(AtumScene, play));
 
@@ -922,11 +929,11 @@ NATIVE_METHOD_LIST(AtumCore,
   NATIVE_CTOR(AtumCore),
   NATIVE_METHOD(AtumCore, init),
   NATIVE_METHOD(AtumCore, update),
-  NATIVE_METHOD_WITH_ARGS(AtumCore, addScene, Dart_Handle),
-  NATIVE_METHOD_WITH_ARGS(AtumCore, controlsGetAlias, const char*),
-  NATIVE_METHOD_WITH_ARGS(AtumCore, controlsIsDebugKeyActive, const char*),
-  NATIVE_METHOD_WITH_ARGS(AtumCore, controlsIsDebugKeyPressed, const char*),
-  NATIVE_FUNC(AtumCore, servicePort));
+  NATIVE_METHOD(AtumCore, addScene, Dart_Handle),
+  NATIVE_METHOD(AtumCore, controlsGetAlias, const char*),
+  NATIVE_METHOD(AtumCore, controlsIsDebugKeyActive, const char*),
+  NATIVE_METHOD(AtumCore, controlsIsDebugKeyPressed, const char*),
+  NATIVE_FUNCON(AtumCore, servicePort));
 
 void wrappedTestDoSomethingAsync(Dart_Port dest_port_id, Dart_CObject* message)
 {
