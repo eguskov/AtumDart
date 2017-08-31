@@ -199,21 +199,13 @@ struct NativeLookup
 
 decltype(NativeLookup::functions) NativeLookup::functions;
 
-// NativeFunction(CONCAT(cls, method), nativeCall<cls, &cls::method>)
-// NativeFunction(CONCAT(cls, method), nativeCall<cls, decltype(&cls::method), &cls::method, __VA_ARGS__>)
-
-//#define NRGS(cls, method, ...) &cls::method
-//#define ARGS(cls, method, ...) decltype(&cls::method), &cls::method, __VA_ARGS__
-//#define NATIVE_METHOD1(args, cls, method, ...) NativeFunction(CONCAT(cls, method), nativeCall<cls, args(cls, method, __VA_ARGS__)>)
-
-
 #define STR(a) #a
 #define CONCAT(a, b) STR(a) STR(::) STR(b)
 #define NATIVE_METHOD(cls, method, ...) NativeFunction(CONCAT(cls, method), nativeCall<cls, decltype(&cls::method), &cls::method, __VA_ARGS__>)
 #define NATIVE_FUNCON(cls, func) NativeFunction(CONCAT(cls, func), cls::func)
 #define NATIVE_CTOR(cls) NativeFunction(CONCAT(cls, cls), newInstance<cls>)
 #define NATIVE_METHOD_LIST(cls, ...) \
-  static std::array<NativeFunction, argsCount(__VA_ARGS__)> native##cls = { { __VA_ARGS__ } }; \
+  static std::array<NativeFunction, argsCount(__VA_ARGS__) + 1> native##cls = { { NATIVE_CTOR(cls), __VA_ARGS__ } }; \
   struct native##cls##_pushToNativeLookup { native##cls##_pushToNativeLookup() { NativeLookup::push(native##cls); }} native##cls##_push;
 
 template<typename T>
@@ -479,7 +471,6 @@ public:
 };
 
 NATIVE_METHOD_LIST(AtumSceneObject,
-  NATIVE_CTOR(AtumSceneObject),
   NATIVE_METHOD(AtumSceneObject, cast, Dart_Handle),
   NATIVE_METHOD(AtumSceneObject, getTrans),
   NATIVE_METHOD(AtumSceneObject, setTrans, Matrix),
@@ -515,7 +506,6 @@ public:
 };
 
 NATIVE_METHOD_LIST(AtumTank,
-  NATIVE_CTOR(AtumTank),
   NATIVE_METHOD(AtumTank, getAngles),
   NATIVE_METHOD(AtumTank, setAngles, Vector),
   NATIVE_METHOD(AtumTank, move, Vector));
@@ -570,7 +560,6 @@ public:
 };
 
 NATIVE_METHOD_LIST(AtumScene,
-  NATIVE_CTOR(AtumScene),
   NATIVE_METHOD(AtumScene, addObject, Dart_Handle, const char*),
   NATIVE_METHOD(AtumScene, load, const char*),
   NATIVE_METHOD(AtumScene, getObject, Dart_Handle, int),
@@ -926,7 +915,6 @@ public:
 };
 
 NATIVE_METHOD_LIST(AtumCore,
-  NATIVE_CTOR(AtumCore),
   NATIVE_METHOD(AtumCore, init),
   NATIVE_METHOD(AtumCore, update),
   NATIVE_METHOD(AtumCore, addScene, Dart_Handle),
