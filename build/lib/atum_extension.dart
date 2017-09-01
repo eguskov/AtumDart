@@ -50,8 +50,10 @@ class AtumCore extends _Native {
   init() native "AtumCore::init";
   double update() native "AtumCore::update";
   int controlsGetAlias(String) native "AtumCore::controlsGetAlias";
-  bool controlsIsDebugKeyActive(String) native "AtumCore::controlsIsDebugKeyActive";
-  bool controlsIsDebugKeyPressed(String) native "AtumCore::controlsIsDebugKeyPressed";
+  bool controlsIsDebugKeyActive(String)
+      native "AtumCore::controlsIsDebugKeyActive";
+  bool controlsIsDebugKeyPressed(String)
+      native "AtumCore::controlsIsDebugKeyPressed";
 
   AtumScene _addScene(Type sceneType) native "AtumCore::addScene";
   AtumScene addScene() => _addScene(AtumScene);
@@ -132,6 +134,38 @@ class AtumCore extends _Native {
   //   return completer.future;
   // }
 
+  ReceivePort portOnExit;
+  ReceivePort portOnError;
+  ReceivePort portOnMessage;
+
+  Isolate loadSceneIsolate(String path) async {
+    portOnExit = new ReceivePort();
+    portOnError = new ReceivePort();
+    portOnMessage = new ReceivePort();
+
+    portOnExit.listen((message) {
+      print('portOnExit: ${message}');
+    });
+
+    portOnError.listen((message) {
+      print('portOnError: ${message}');
+    });
+
+    portOnMessage.listen((message) {
+      print('portOnMessage: ${message}');
+    });
+
+    var uri = new Uri.file(path);
+    Isolate iso = await Isolate.spawnUri(uri, [], portOnMessage.sendPort,
+        onExit: portOnExit.sendPort, onError: portOnError.sendPort);
+
+    print(iso);
+
+    // iso.
+
+    return iso;
+  }
+
   @override
   SendPort _getServicePort() => _port;
 
@@ -163,7 +197,7 @@ class AtumSceneObject extends _NativeWithoutServicePort {
   void _new() native "AtumSceneObject::AtumSceneObject";
 }
 
-class AtumTank extends AtumSceneObject { 
+class AtumTank extends AtumSceneObject {
   Float32List _getAngles() native "AtumTank::getAngles";
   Vector3 get angles => new Vector3.fromFloat32List(_getAngles());
 
@@ -178,13 +212,16 @@ class AtumTank extends AtumSceneObject {
 }
 
 class AtumScene extends _NativeWithoutServicePort {
-  AtumSceneObject _addObject(Type sceneObjectType, String typeName) native "AtumScene::addObject";
-  AtumSceneObjectaddObject(String typeName) => _addObject(AtumSceneObject, typeName);
+  AtumSceneObject _addObject(Type sceneObjectType, String typeName)
+      native "AtumScene::addObject";
+  AtumSceneObjectaddObject(String typeName) =>
+      _addObject(AtumSceneObject, typeName);
 
   load(String path) native "AtumScene::load";
   play() native "AtumScene::play";
 
-  AtumSceneObject _getObject(Type sceneObjectType, int index) native "AtumScene::getObject";
+  AtumSceneObject _getObject(Type sceneObjectType, int index)
+      native "AtumScene::getObject";
   AtumSceneObject getObject(int index) => _getObject(AtumSceneObject, index);
 
   int getObjectsCount() native "AtumScene::getObjectsCount";

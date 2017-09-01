@@ -413,6 +413,8 @@ class RefCount
   std::atomic<int> refCount = 1;
 
 public:
+  virtual ~RefCount() {}
+
   virtual void retain()
   {
     ++refCount;
@@ -515,6 +517,7 @@ class AtumScene : public RefCount
 public:
   Scene* scene = nullptr;
 
+  AtumScene() {}
   ~AtumScene()
   {
     delete scene;
@@ -573,32 +576,6 @@ class AtumCore : public Object, public RefCount
   Scene* currentScene = nullptr;
   TaskExecutor::SingleTaskPool* renderTaskPool;
 
-  class Listener : public EUIWidget::Listener
-  {
-    AtumCore& owner;
-
-  public:
-    Listener(AtumCore& owner) : owner(owner) {}
-
-    virtual void OnMouseMove(EUIWidget* sender, int mx, int my)
-    {
-      if (sender == owner.mainWnd)
-      {
-        // controls.OverrideMousePos(mx, my);
-      }
-    }
-
-    virtual void OnLeftMouseDown(EUIWidget* sender, int mx, int my) {}
-    virtual void OnLeftMouseUp(EUIWidget* sender, int mx, int my) {}
-    virtual void OnRightMouseUp(EUIWidget* sender, int mx, int my) {}
-    virtual void OnMenuItem(EUIWidget* sender, int id) {}
-    virtual void OnUpdate(EUIWidget* sender) {}
-    virtual void OnListBoxChange(EUIWidget* sender, int index) {}
-    virtual void OnEditBoxChange(EUIWidget* sender) {}
-    virtual void OnResize(EUIWidget* sender) {}
-    virtual void OnWinClose(EUIWidget* sender) {}
-  } listener;
-
   std::thread* uiThread = nullptr;
 
   struct UIMessage
@@ -628,7 +605,15 @@ class AtumCore : public Object, public RefCount
   std::atomic<bool> done = false;
 
 public:
-  AtumCore() : listener(*this) {}
+  AtumCore()
+  {
+  }
+
+  virtual ~AtumCore()
+  {
+    done = true;
+    Sleep(500);
+  }
 
   static LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   {
@@ -692,7 +677,7 @@ public:
     core->mainWnd->SetFocused();
     // mainWnd->Maximaze();
 
-    while (true)
+    while (!core->done)
     {
       MSG msg;
 
@@ -704,14 +689,11 @@ public:
     }
   }
 
-  void release()
-  {
-    done = true;
-    Sleep(500);
-  }
-
   Dart_Handle init()
   {
+    if (uiThread)
+      return Dart_Null();
+
     PULL_DECL(Terrain);
     PULL_DECL(PhysBox);
     PULL_DECL(Tank);

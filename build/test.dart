@@ -5,6 +5,7 @@
 library atum_extension;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:atum/atum_extension.dart';
 import 'package:vector_math/vector_math.dart';
@@ -69,9 +70,9 @@ double strafe_speed = 0.0;
 
 update() {
   double dt = core.update();
-
   if (dt < 0.0) {
     timer.cancel();
+    exit(0);
     return;
   }
 
@@ -146,12 +147,14 @@ update() {
   tank.move(dir);
 }
 
-main() {
+main() async {
   core = new AtumCore();
   core.init();
 
   scene = core.addScene();
   print(scene);
+
+  var iso = await core.loadSceneIsolate('lib/atum_scene_worker.dart');
 
   scene.load("Media/Scene.scn");
   print(scene.getObjectsCount());
