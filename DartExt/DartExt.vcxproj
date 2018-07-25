@@ -95,8 +95,8 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files\Dart\dart-sdk\bin;$(OutputPath);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>dart.lib;Atum.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Projects\Atum\Libraries;D:\Projects\Atum\Bin;C:\Program Files\Dart\dart-sdk\bin;$(OutputPath);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>dart.lib;IonStorm_DEBUG.lib;dxgi.lib;d3d11.lib;dxguid.lib;d3dcompiler.lib;dinput8.lib;xinput.lib;comctl32.lib;user32.lib;EUI\lib\EUI_DEBUGx64.lib;PhysX\Lib\vc14win64\PhysX3DEBUG_x64.lib;PhysX\Lib\vc14win64\PhysX3CommonDEBUG_x64.lib;PhysX\Lib\vc14win64\PhysX3ExtensionsDEBUG.lib;PhysX\Lib\vc14win64\PhysX3CookingDEBUG_x64.lib;PhysX\Lib\vc14win64\PxFoundationDEBUG_x64.lib;PhysX\Lib\vc14win64\PhysX3CharacterKinematicDEBUG_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OptimizeReferences>
       </OptimizeReferences>
     </Link>
@@ -106,6 +106,14 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
+    <PreBuildEvent>
+      <Command>gen\gen.cmd $(ProjectDir)
+</Command>
+    </PreBuildEvent>
+    <CustomBuildStep>
+      <Inputs>
+      </Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -138,6 +146,34 @@
   <ItemGroup>
     <ClCompile Include="dllMain.cpp" />
     <ClCompile Include="extension.cpp" />
+    <ClCompile Include="gen\PhysBox.gen.cpp" />
+    <ClCompile Include="gen\Scene.gen.cpp" />
+    <ClCompile Include="gen\SceneObject.gen.cpp" />
+    <ClCompile Include="gen\Terrain.gen.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dartHelpers.h" />
+    <ClInclude Include="gen\PhysBox.gen.h" />
+    <ClInclude Include="gen\Scene.gen.h" />
+    <ClInclude Include="gen\SceneObject.gen.h" />
+    <ClInclude Include="gen\Terrain.gen.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="gen\Codegen.exe">
+      <DeploymentContent>true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="gen\gen.cmd">
+      <DeploymentContent>false</DeploymentContent>
+      <FileType>Document</FileType>
+    </None>
+    <None Include="gen\PhysBox.rules.json" />
+    <None Include="gen\Scene.rules.json" />
+    <None Include="gen\SceneObject.rules.json" />
+    <None Include="gen\Terrain.rules.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

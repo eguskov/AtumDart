@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="gen">
+      <UniqueIdentifier>{be2b226d-7f47-40f3-af09-b0ae1ada99cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllMain.cpp">
@@ -21,5 +24,56 @@
     <ClCompile Include="extension.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gen\PhysBox.gen.cpp">
+      <Filter>gen</Filter>
+    </ClCompile>
+    <ClCompile Include="gen\SceneObject.gen.cpp">
+      <Filter>gen</Filter>
+    </ClCompile>
+    <ClCompile Include="gen\Terrain.gen.cpp">
+      <Filter>gen</Filter>
+    </ClCompile>
+    <ClCompile Include="gen\Scene.gen.cpp">
+      <Filter>gen</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dartHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gen\PhysBox.gen.h">
+      <Filter>gen</Filter>
+    </ClInclude>
+    <ClInclude Include="gen\SceneObject.gen.h">
+      <Filter>gen</Filter>
+    </ClInclude>
+    <ClInclude Include="gen\Terrain.gen.h">
+      <Filter>gen</Filter>
+    </ClInclude>
+    <ClInclude Include="gen\Scene.gen.h">
+      <Filter>gen</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="gen\Codegen.exe">
+      <Filter>gen</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="gen\gen.cmd">
+      <Filter>gen</Filter>
+    </None>
+    <None Include="gen\PhysBox.rules.json">
+      <Filter>gen</Filter>
+    </None>
+    <None Include="gen\SceneObject.rules.json">
+      <Filter>gen</Filter>
+    </None>
+    <None Include="gen\Terrain.rules.json">
+      <Filter>gen</Filter>
+    </None>
+    <None Include="gen\Scene.rules.json">
+      <Filter>gen</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -1,0 +1,62 @@
+#include "test.gen.h"
+
+Dart_Handle AtumExt_PhysBox::Play()
+{
+  object.Play();
+  return Dart_Null();
+}
+
+Dart_Handle AtumExt_PhysBox::Draw(float dt)
+{
+  object.Draw(dt);
+  return Dart_Null();
+}
+
+Dart_Handle AtumExt_PhysBox::Init()
+{
+  object.Init();
+  return Dart_Null();
+}
+
+Dart_Handle AtumExt_PhysBox::Stop()
+{
+  object.Stop();
+  return Dart_Null();
+}
+
+Dart_Handle AtumExt_PhysBox::get_field_sizeX()
+{
+  return fromValue(object.sizeX);
+}
+
+Dart_Handle AtumExt_PhysBox::get_field_sizeY()
+{
+  return fromValue(object.sizeY);
+}
+
+Dart_Handle AtumExt_PhysBox::get_field_sizeZ()
+{
+  return fromValue(object.sizeZ);
+}
+
+Dart_Handle AtumExt_PhysBox::get_field_isStatic()
+{
+  return fromValue(object.isStatic);
+}
+
+Dart_Handle AtumExt_PhysBox::get_field_color()
+{
+  return fromValue(object.color);
+}
+
+NATIVE_METHOD_LIST(AtumExt_PhysBox,
+  NATIVE_METHOD(AtumExt_PhysBox, Play),
+  NATIVE_METHOD(AtumExt_PhysBox, Draw, float),
+  NATIVE_METHOD(AtumExt_PhysBox, Init),
+  NATIVE_METHOD(AtumExt_PhysBox, Stop),
+  NATIVE_METHOD(AtumExt_PhysBox, get_field_sizeX),
+  NATIVE_METHOD(AtumExt_PhysBox, get_field_sizeY),
+  NATIVE_METHOD(AtumExt_PhysBox, get_field_sizeZ),
+  NATIVE_METHOD(AtumExt_PhysBox, get_field_isStatic),
+  NATIVE_METHOD(AtumExt_PhysBox, get_field_color));
+

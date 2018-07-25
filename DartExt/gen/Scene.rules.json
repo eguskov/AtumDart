@@ -1,0 +1,23 @@
+{
+  "deps": [
+    "SceneObject"
+  ],
+  "includes": [
+    "Services/Scene/Scene.h"
+  ],
+  "includeClasses": [
+    "Scene"
+  ],
+  "excludeMethods": [
+    "GetMetaData",
+    "PScene",
+    "Tasks",
+    "RenderTasks",
+    "ApplyProperties",
+    "GetClassName",
+    "GetGroup"
+  ],
+  "allowTypes": [
+    "Scene"
+  ]
+}

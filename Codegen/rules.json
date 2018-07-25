@@ -1,0 +1,13 @@
+{
+  "includeClasses": [
+    "PhysBox"
+  ],
+  "excludeMethods": [
+    "GetMetaData",
+    "PScene",
+    "Tasks",
+    "RenderTasks",
+    "ApplyProperties",
+    "GetClassName"
+  ]
+}

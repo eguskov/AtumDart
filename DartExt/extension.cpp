@@ -1,22 +1,20 @@
+#define _WINSOCKAPI_
+#include <windows.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
-#include <vector>
 #include <algorithm>
-#include <iostream>
 #include <thread>
 #include <queue>
 #include <mutex>
-#include <atomic>
-#include <array>
-#include <utility>
 
-#include <dart_api.h>
-#include <dart_native_api.h>
+#include "dartHelpers.h"
 
-#include <time.h>
-#include <windows.h>
+// #undef NATIVE_METHOD_LIST
+// #define NATIVE_METHOD_LIST(...)
 
 #include "Services/Render/Render.h"
 #include "Services/Physics/Physics.h"
@@ -24,18 +22,26 @@
 #include "Services/Scene/SceneObject.h"
 #include "Support/Timer.h"
 
+#include "SceneObjects/terrain.h"
+#include "SceneObjects/tank.h"
+#include "SceneObjects/PhysBox.h"
+
 #define DLL_EXPORT DART_EXPORT __declspec(dllexport)
 #define PULL_DECL(n) struct Pull##n\
 {\
   Pull##n()\
   {\
     const char* name = ((ClassFactorySceneObject*)&n::classFactory##n##decl)->GetName(); \
+    n::meta_data.Init(); \
+    OutputDebugString(name); \
+    OutputDebugString("\n"); \
   }\
-}; Pull##n pull##n;\
+};\
+Pull##n pull##n;\
 
-#include "SceneObjects/terrain.h"
-#include "SceneObjects/tank.h"
-#include "SceneObjects/PhysBox.h"
+#include "gen/Scene.gen.h"
+
+decltype(NativeLookup::functions) NativeLookup::functions = nullptr;
 
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc, bool* auto_setup_scope);
 
@@ -46,20 +52,14 @@ DLL_EXPORT Dart_Handle AtumExt_Init(Dart_Handle parent_library)
     return parent_library;
   }
 
+  PULL_DECL(Terrain);
+  PULL_DECL(PhysBox);
+  PULL_DECL(Tank);
 
   Dart_Handle cls = Dart_CreateNativeWrapperClass(parent_library, Dart_NewStringFromCString("NativeClass1"), 1);
 
   Dart_Handle result_code = Dart_SetNativeResolver(parent_library, ResolveName, NULL);
   return Dart_IsError(result_code) ? result_code : Dart_Null();
-}
-
-static inline Dart_Handle HandleError(Dart_Handle handle)
-{
-  if (Dart_IsError(handle))
-  {
-    Dart_PropagateError(handle);
-  }
-  return handle;
 }
 
 void SystemRand(Dart_NativeArguments arguments) {
@@ -157,361 +157,6 @@ void randomArrayServicePort(Dart_NativeArguments arguments)
   Dart_ExitScope();
 }
 
-intptr_t getPeer(Dart_NativeArguments arguments)
-{
-  intptr_t peer = 0;
-  Dart_Handle dartThis = HandleError(Dart_GetNativeArgument(arguments, 0));
-  HandleError(Dart_GetNativeInstanceField(dartThis, 0, &peer));
-  return peer;
-}
-
-template <typename ... T>
-constexpr size_t argsCount(const T& ...) { return sizeof...(T); }
-
-struct NativeFunction
-{
-  const char* name;
-  Dart_NativeFunction function;
-
-  constexpr NativeFunction() : name(nullptr), function(nullptr) {}
-  constexpr NativeFunction(const char* n, const Dart_NativeFunction& f) : name(n), function(f) {}
-};
-
-struct NativeLookup
-{
-  static std::vector<NativeFunction> functions;
-
-  template <size_t N>
-  static void push(const std::array<NativeFunction, N>& arr)
-  {
-    for (auto& f : arr)
-      functions.push_back(f);
-  }
-
-  static Dart_NativeFunction find(const char* name)
-  {
-    for (auto& f : functions)
-      if (!::strcmp(name, f.name))
-        return f.function;
-    return nullptr;
-  }
-};
-
-decltype(NativeLookup::functions) NativeLookup::functions;
-
-#define STR(a) #a
-#define CONCAT(a, b) STR(a) STR(::) STR(b)
-#define NATIVE_METHOD(cls, method, ...) NativeFunction(CONCAT(cls, method), nativeCall<cls, decltype(&cls::method), &cls::method, __VA_ARGS__>)
-#define NATIVE_FUNCON(cls, func) NativeFunction(CONCAT(cls, func), cls::func)
-#define NATIVE_CTOR(cls) NativeFunction(CONCAT(cls, cls), newInstance<cls>)
-#define NATIVE_METHOD_LIST(cls, ...) \
-  static std::array<NativeFunction, argsCount(__VA_ARGS__) + 1> native##cls = { { NATIVE_CTOR(cls), __VA_ARGS__ } }; \
-  struct native##cls##_pushToNativeLookup { native##cls##_pushToNativeLookup() { NativeLookup::push(native##cls); }} native##cls##_push;
-
-template<typename T>
-static inline void toValue(Dart_Handle argHandle, T& argValue)
-{
-  static_assert(false, "Fuck, this shit! Missed implementation for type!");
-}
-
-template<>
-static inline void toValue(Dart_Handle argHandle, const char*& argValue)
-{
-  Dart_StringToCString(argHandle, &argValue);
-}
-
-template<>
-static inline void toValue(Dart_Handle argHandle, Dart_Handle& argValue)
-{
-  argValue = argHandle;
-}
-
-template<>
-static inline void toValue(Dart_Handle argHandle, int& argValue)
-{
-  int64_t v = 0;
-  Dart_IntegerToInt64(argHandle, &v);
-  argValue = (int)v;
-}
-
-template<>
-static inline void toValue(Dart_Handle argHandle, Vector& argValue)
-{
-  Dart_TypedData_Type dataTypeUnused;
-  void* dataLocation;
-  intptr_t dataLengthUnused;
-  Dart_TypedDataAcquireData(argHandle, &dataTypeUnused, &dataLocation, &dataLengthUnused);
-
-  ::memcpy(argValue.v, dataLocation, sizeof(Vector));
-
-  Dart_TypedDataReleaseData(argHandle);
-}
-
-template<>
-static inline void toValue(Dart_Handle argHandle, Matrix& argValue)
-{
-  Dart_TypedData_Type data_type_unused;
-  void* data_location;
-  intptr_t data_length_unused;
-  Dart_TypedDataAcquireData(argHandle, &data_type_unused, &data_location, &data_length_unused);
-
-  ::memcpy(argValue.matrix, data_location, sizeof(float) * 16);
-
-  Dart_TypedDataReleaseData(argHandle);
-}
-
-template<typename T>
-static inline T toValue(Dart_NativeArguments arguments, size_t index)
-{
-  Dart_Handle handle = Dart_GetNativeArgument(arguments, (int)index);
-  T value;
-  toValue(handle, value);
-  return value;
-}
-
-template<typename T>
-static inline Dart_Handle fromValue(const T& value)
-{
-  static_assert(false, "Fuck, this shit! Missed implementation for type!");
-  return Dart_Null();
-}
-
-template<>
-static inline Dart_Handle fromValue(const int& value)
-{
-  return Dart_NewInteger(value);
-}
-
-template<>
-static inline Dart_Handle fromValue(const char * const & value)
-{
-  return Dart_NewStringFromCString(value);
-}
-
-template<>
-static inline Dart_Handle fromValue(const Vector& value)
-{
-  Dart_Handle list = Dart_NewTypedData(Dart_TypedData_kFloat32, 3);
-
-  Dart_TypedData_Type dataTypeUnused;
-  void* dataLocation;
-  intptr_t dataLengthUnused;
-  Dart_TypedDataAcquireData(list, &dataTypeUnused, &dataLocation, &dataLengthUnused);
-
-  ::memcpy(dataLocation, value.v, sizeof(value));
-
-  Dart_TypedDataReleaseData(list);
-
-  return HandleError(list);
-}
-
-template<>
-static inline Dart_Handle fromValue(const Matrix& value)
-{
-  Dart_Handle list = Dart_NewTypedData(Dart_TypedData_kFloat32, 16);
-
-  Dart_TypedData_Type dataTypeUnused;
-  void* dataLocation;
-  intptr_t dataLengthUnused;
-  Dart_TypedDataAcquireData(list, &dataTypeUnused, &dataLocation, &dataLengthUnused);
-
-  ::memcpy(dataLocation, value.matrix, sizeof(value));
-
-  Dart_TypedDataReleaseData(list);
-
-  return HandleError(list);
-}
-
-template <typename PeerT, typename Method, typename... Args, size_t... I>
-static inline void nativeCallImpl(Dart_NativeArguments arguments, Method method, std::index_sequence<I...>)
-{
-  Dart_EnterScope();
-  Dart_SetReturnValue(arguments, Dart_Null());
-  if (intptr_t peer = getPeer(arguments))
-  {
-    Dart_Handle ret = (((PeerT*)peer)->*method)(toValue<Args>(arguments, I + 1)...);
-    Dart_SetReturnValue(arguments, HandleError(ret));
-  }
-  Dart_ExitScope();
-}
-
-template<typename T, typename Method, Method method, typename... Args>
-void nativeCall(Dart_NativeArguments arguments)
-{
-  nativeCallImpl<T, Method, Args...>(arguments, method, std::make_index_sequence<sizeof...(Args)>{});
-}
-
-template<typename T, Dart_Handle(T::*Method)()>
-void nativeCall(Dart_NativeArguments arguments)
-{
-  Dart_EnterScope();
-  Dart_SetReturnValue(arguments, Dart_Null());
-  if (intptr_t peer = getPeer(arguments))
-  {
-    Dart_Handle ret = (((T*)peer)->*Method)();
-    Dart_SetReturnValue(arguments, HandleError(ret));
-  }
-  Dart_ExitScope();
-}
-
-template <typename T>
-static void releasePeer(void* isolate_callback_data, Dart_WeakPersistentHandle handle, void* peer)
-{
-  ((T*)peer)->release();
-}
-
-template <typename T>
-void newInstance(Dart_NativeArguments arguments)
-{
-  Dart_EnterScope();
-
-  Dart_SetReturnValue(arguments, Dart_Null());
-
-  intptr_t peer = 0;
-  Dart_Handle dartThis = HandleError(Dart_GetNativeArgument(arguments, 0));
-  Dart_GetNativeInstanceField(dartThis, 0, &peer);
-
-  if (!peer)
-  {
-    T *instance = new T;
-    std::cout << "createPeer: " << instance << std::endl;
-
-    Dart_NewWeakPersistentHandle(dartThis, reinterpret_cast<void*>(instance), sizeof(*instance), releasePeer<T>);
-    HandleError(Dart_SetNativeInstanceField(dartThis, 0, (intptr_t)instance));
-  }
-  else
-  {
-    std::cout << "reusePeer: " << (T*)peer << std::endl;
-  }
-
-  Dart_ExitScope();
-}
-
-template <typename T>
-Dart_Handle newObject(Dart_Handle type, T* instance)
-{
-  intptr_t peer = (intptr_t)instance;
-  Dart_Handle object = HandleError(Dart_AllocateWithNativeFields(type, 1, &peer));
-  Dart_NewWeakPersistentHandle(object, reinterpret_cast<void*>(instance), sizeof(*instance), releasePeer<T>);
-
-  return HandleError(Dart_InvokeConstructor(object, Dart_Null(), 0, nullptr));
-}
-
-template <typename T>
-Dart_Handle newObjectRef(Dart_Handle type, T* instance)
-{
-  instance->retain();
-
-  intptr_t peer = (intptr_t)instance;
-  Dart_Handle object = HandleError(Dart_AllocateWithNativeFields(type, 1, &peer));
-  Dart_NewWeakPersistentHandle(object, reinterpret_cast<void*>(instance), sizeof(*instance), releasePeer<T>);
-  return HandleError(Dart_InvokeConstructor(object, Dart_Null(), 0, nullptr));
-}
-
-class RefCount
-{
-  std::atomic<int> refCount = 1;
-
-public:
-  virtual ~RefCount() {}
-
-  virtual void retain()
-  {
-    ++refCount;
-  }
-
-  virtual void release()
-  {
-    std::cout << "RefCount[" << refCount << "]::release: " << this << std::endl;
-
-    if (refCount > 1)
-    {
-      --refCount;
-      return;
-    }
-
-    if (refCount > 0)
-    {
-      refCount = 0;
-      delete this;
-    }
-  }
-
-};
-
-class AtumSceneObject : public RefCount
-{
-public:
-  SceneObject* object = nullptr;
-
-  Dart_Handle cast(Dart_Handle type)
-  {
-    return newObjectRef(type, this);
-  }
-
-  Dart_Handle getTrans()
-  {
-    return fromValue(object->Trans());
-  }
-
-  Dart_Handle setTrans(const Matrix& mat)
-  {
-    if (object->Playing())
-      object->Trans() = mat;
-    return Dart_Null();
-  }
-
-  Dart_Handle getName()
-  {
-    return fromValue(object->GetName());
-  }
-
-  Dart_Handle getClassName()
-  {
-    return fromValue(object->GetClassName());
-  }
-};
-
-NATIVE_METHOD_LIST(AtumSceneObject,
-  NATIVE_METHOD(AtumSceneObject, cast, Dart_Handle),
-  NATIVE_METHOD(AtumSceneObject, getTrans),
-  NATIVE_METHOD(AtumSceneObject, setTrans, Matrix),
-  NATIVE_METHOD(AtumSceneObject, getName),
-  NATIVE_METHOD(AtumSceneObject, getClassName));
-
-class AtumTank : public AtumSceneObject
-{
-public:
-  Dart_Handle getAngles()
-  {
-    if (object->Playing())
-      return fromValue(((Tank*)object)->angles);
-
-    return Dart_Null();
-  }
-
-  Dart_Handle setAngles(const Vector& angles)
-  {
-    if (object->Playing())
-     ((Tank*)object)->angles = angles;
-
-    return Dart_Null();
-  }
-
-  Dart_Handle move(const Vector& dir)
-  {
-    if (object->Playing())
-      ((Tank*)object)->controller->Move(dir);
-
-    return Dart_Null();
-  }
-};
-
-NATIVE_METHOD_LIST(AtumTank,
-  NATIVE_METHOD(AtumTank, getAngles),
-  NATIVE_METHOD(AtumTank, setAngles, Vector),
-  NATIVE_METHOD(AtumTank, move, Vector));
-
 class AtumScene : public RefCount
 {
 public:
@@ -523,13 +168,7 @@ public:
     delete scene;
   }
 
-  Dart_Handle addObject(Dart_Handle scene_object_type, const char* name)
-  {
-    AtumSceneObject* object = new AtumSceneObject;
-    object->object = scene->AddObject(name);
-    return newObject(scene_object_type, object);
-  }
-
+  //@ export start
   Dart_Handle play()
   {
     scene->Play();
@@ -542,24 +181,33 @@ public:
     return Dart_Null();
   }
 
-  Dart_Handle getObject(Dart_Handle scene_object_type, int index)
+  static Dart_Handle getCorrectInstance(Dart_Handle scene_object_type, SceneObject* scene_object)
   {
-    SceneObject* sceneObject = scene->GetObj(index);
-    AtumSceneObject* object = nullptr;
-
-    if (!::strcmp(sceneObject->GetClassName(), "Tank"))
+    /*AtumSceneObject* object = nullptr;
+    if (!::strcmp(scene_object->GetClassName(), "Tank"))
       object = new AtumTank;
     else
       object = new AtumSceneObject;
+    object->object = scene_object;
+    return newObject(scene_object_type, object);*/
+    return Dart_Null();
+  }
 
-    object->object = sceneObject;
-    return newObject(scene_object_type, object);
+  Dart_Handle addObject(Dart_Handle scene_object_type, const char* name)
+  {
+    return getCorrectInstance(scene_object_type, scene->AddObject(name));
+  }
+
+  Dart_Handle getObject(Dart_Handle scene_object_type, int index)
+  {
+    return getCorrectInstance(scene_object_type, scene->GetObj(index));
   }
 
   Dart_Handle getObjectsCount()
   {
-    return fromValue(scene->GetObjectsCount());
+    return nativeToDart(scene->GetObjectsCount());
   }
+  //@ export end
 };
 
 NATIVE_METHOD_LIST(AtumScene,
@@ -569,15 +217,63 @@ NATIVE_METHOD_LIST(AtumScene,
   NATIVE_METHOD(AtumScene, getObjectsCount),
   NATIVE_METHOD(AtumScene, play));
 
+class AtumPhysScene : public RefCount
+{
+public:
+  PhysScene* scene = nullptr;
+
+  AtumPhysScene() {}
+  ~AtumPhysScene()
+  {
+    if (scene)
+      physics.DestroyScene(scene);
+  }
+
+  Dart_Handle rayCast(Dart_Handle desc)
+  {
+    return Dart_Null();
+  }
+
+  Dart_Handle createController(Dart_Handle desc)
+  {
+    /*PhysControllerDesc cdesc;
+    cdesc.height = 1.0f;
+    cdesc.radius = 1.0f;
+    cdesc.pos = transform.Pos();
+    cdesc.slopeLimit = cosf(RADIAN * 60.0f);
+
+    controller = pscene->CreateController(cdesc);*/
+
+    return Dart_Null();
+  }
+
+  Dart_Handle createHeightmap(Dart_Handle desc)
+  {
+    /*PhysHeightmapDesc hdesc;
+    hdesc.width = terrain->hwidth;
+    hdesc.height = terrain->hheight;
+    hdesc.hmap = terrain->hmap;
+    hdesc.scale = Vector2(terrain->scaleh, terrain->scalev);
+
+    hm = pscene->CreateHeightmap(hdesc);*/
+
+    return Dart_Null();
+  }
+
+  Dart_Handle createBox(Dart_Handle desc)
+  {
+    /*obj = pscene->CreateBox(Vector(boxes[i].box->sizeX * 0.5f, boxes[i].box->sizeY * 0.5f, boxes[i].box->sizeZ * 0.5f),
+      boxes[i].box->Trans(), boxes[i].box->isStatic);*/
+
+    return Dart_Null();
+  }
+};
+
+NATIVE_METHOD_LIST(AtumPhysScene,
+  NATIVE_METHOD(AtumPhysScene, rayCast, Dart_Handle));
+
 class AtumCore : public Object, public RefCount
 {
-  EUIWindow* mainWnd;
-
-  Scene* currentScene = nullptr;
-  TaskExecutor::SingleTaskPool* renderTaskPool;
-
-  std::thread* uiThread = nullptr;
-
   struct UIMessage
   {
     uint32_t wndMessage = 0;
@@ -598,11 +294,25 @@ class AtumCore : public Object, public RefCount
     } value;
   };
 
-  std::mutex uiEventsLock;
-  std::queue<UIMessage> uiEvents;
+  struct SharedData
+  {
+    EUIWindow* mainWnd;
 
-  std::atomic<bool> ready = false;
-  std::atomic<bool> done = false;
+    std::vector<Scene*> scenes;
+    std::vector<PhysScene*> physScenes;
+    TaskExecutor::SingleTaskPool* renderTaskPool;
+
+    std::thread* uiThread = nullptr;
+
+    std::mutex critSec;
+    std::mutex uiCritSec;
+    std::queue<UIMessage> uiEvents;
+
+    std::atomic<bool> ready = false;
+    std::atomic<bool> done = false;
+  };
+
+  static SharedData sharedData;
 
 public:
   AtumCore()
@@ -611,7 +321,7 @@ public:
 
   virtual ~AtumCore()
   {
-    done = true;
+    sharedData.done = true;
     Sleep(500);
   }
 
@@ -630,8 +340,8 @@ public:
       m.value.asResize.width = LOWORD(lParam);
       m.value.asResize.height = HIWORD(lParam);
 
-      std::unique_lock<std::mutex> lock(core->uiEventsLock);
-      core->uiEvents.push(m);
+      std::unique_lock<std::mutex> lock(core->sharedData.uiCritSec);
+      core->sharedData.uiEvents.push(m);
     }
     else if (msg == WM_MOUSEMOVE)
     {
@@ -640,16 +350,16 @@ public:
       m.value.asMousePos.x = LOWORD(lParam);
       m.value.asMousePos.y = HIWORD(lParam);
 
-      std::unique_lock<std::mutex> lock(core->uiEventsLock);
-      core->uiEvents.push(m);
+      std::unique_lock<std::mutex> lock(core->sharedData.uiCritSec);
+      core->sharedData.uiEvents.push(m);
     }
     else if (msg == WM_QUIT || msg == WM_DESTROY || msg == WM_CLOSE)
     {
       UIMessage m;
       m.wndMessage = msg;
 
-      std::unique_lock<std::mutex> lock(core->uiEventsLock);
-      core->uiEvents.push(m);
+      std::unique_lock<std::mutex> lock(core->sharedData.uiCritSec);
+      core->sharedData.uiEvents.push(m);
     }
 
     return ::DefWindowProc(hwnd, msg, wParam, lParam);
@@ -657,27 +367,27 @@ public:
 
   static void handleUIThread(AtumCore* core)
   {
-    core->mainWnd = new EUIWindow("Editor", false, true, 30, 30, 800, 600);
+    core->sharedData.mainWnd = new EUIWindow("Editor", false, true, 30, 30, 800, 600);
     // core->mainWnd->SetListener(&listener, 0);
 
     {
       UIMessage m;
       m.wndMessage = WM_CREATE;
 
-      std::unique_lock<std::mutex> lock(core->uiEventsLock);
-      core->uiEvents.push(m);
+      std::unique_lock<std::mutex> lock(core->sharedData.uiCritSec);
+      core->sharedData.uiEvents.push(m);
     }
 
-    HWND hwnd = *((HWND*)core->mainWnd->GetNative());
+    HWND hwnd = *((HWND*)core->sharedData.mainWnd->GetNative());
 
     ::SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)&AtumCore::wndProc);
     ::SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)core);
 
-    core->mainWnd->Show(true);
-    core->mainWnd->SetFocused();
+    core->sharedData.mainWnd->Show(true);
+    core->sharedData.mainWnd->SetFocused();
     // mainWnd->Maximaze();
 
-    while (!core->done)
+    while (!core->sharedData.done)
     {
       MSG msg;
 
@@ -691,18 +401,14 @@ public:
 
   Dart_Handle init()
   {
-    if (uiThread)
+    if (sharedData.uiThread)
       return Dart_Null();
-
-    PULL_DECL(Terrain);
-    PULL_DECL(PhysBox);
-    PULL_DECL(Tank);
 
     std::cout << __FUNCTION__ << std::endl;
 
     EUI::Init("settings/EUI/theme.dat");
 
-    uiThread = new std::thread(handleUIThread, this);
+    sharedData.uiThread = new std::thread(handleUIThread, this);
 
     UIMessage m;
     while (!nextUIMessage(m) || m.wndMessage != WM_CREATE)
@@ -712,13 +418,13 @@ public:
 
     if (m.wndMessage == WM_CREATE)
     {
-      controls.Init(mainWnd->GetNative(), "settings/controls/hardware_pc", "settings/controls/user_pc");
-      render.Init("DX11", (int)mainWnd->GetWidth(), (int)mainWnd->GetHeight(), mainWnd->GetNative());
+      controls.Init("settings/controls/hardware_pc", true);
+      render.Init("DX11", (int)sharedData.mainWnd->GetWidth(), (int)sharedData.mainWnd->GetHeight(), sharedData.mainWnd->GetNative());
 
       render.AddExecutedLevelPool(1);
 
-      renderTaskPool = render.AddTaskPool();
-      renderTaskPool->AddTask(1, this, (Object::Delegate)&AtumCore::draw);
+      sharedData.renderTaskPool = render.AddTaskPool();
+      sharedData.renderTaskPool->AddTask(1, this, (Object::Delegate)&AtumCore::draw);
 
       physics.Init();
       //scene.Init();
@@ -733,7 +439,7 @@ public:
         decl = decl->Next();
       }
 
-      ready = true;
+      sharedData.ready = true;
     }
 
     return Dart_Null();
@@ -741,28 +447,28 @@ public:
 
   bool nextUIMessage(UIMessage& m)
   {
-    std::unique_lock<std::mutex> lock(uiEventsLock);
+    std::unique_lock<std::mutex> lock(sharedData.uiCritSec);
 
-    if (uiEvents.empty())
+    if (sharedData.uiEvents.empty())
       return false;
 
-    m = uiEvents.front();
-    uiEvents.pop();
+    m = sharedData.uiEvents.front();
+    sharedData.uiEvents.pop();
 
     return true;
   }
 
   Dart_Handle update()
   {
-    if (!ready || done)
-      return Dart_NewDouble(done ? -1.f : 0.f);
+    if (!sharedData.ready || sharedData.done)
+      return Dart_NewDouble(sharedData.done ? -1.f : 0.f);
 
     UIMessage m;
     while (nextUIMessage(m))
     {
       if (m.wndMessage == WM_SIZE)
       {
-        render.GetDevice()->SetVideoMode(m.value.asResize.width, m.value.asResize.height, mainWnd->GetNative());
+        render.GetDevice()->SetVideoMode(m.value.asResize.width, m.value.asResize.height, sharedData.mainWnd->GetNative());
       }
       else if (m.wndMessage == WM_MOUSEMOVE)
       {
@@ -770,7 +476,7 @@ public:
       }
       else if (m.wndMessage == WM_QUIT || m.wndMessage == WM_DESTROY || m.wndMessage == WM_CLOSE)
       {
-        done = true;
+        sharedData.done = true;
         return Dart_NewDouble(-1.f);
       }
     }
@@ -778,8 +484,8 @@ public:
     float dt = Timer::CountDeltaTime();
 
     physics.Update(dt);
-    if (currentScene)
-      currentScene->Execute(dt);
+    for (auto scene : sharedData.scenes)
+      scene->Execute(dt);
     render.Execute(dt);
     controls.Update(dt);
 
@@ -788,17 +494,49 @@ public:
     return Dart_NewDouble(dt);
   }
 
-  Dart_Handle addScene(Dart_Handle scene_type)
+  /*Dart_Handle addScene(Dart_Handle scene_type)
   {
+    std::unique_lock<std::mutex> lock(sharedData.critSec);
+
     AtumScene* scene = new AtumScene;
 
     scene->scene = new Scene;
     scene->scene->Init();
 
-    currentScene = scene->scene;
+    sharedData.scenes.push_back(scene->scene);
 
     return newObject(scene_type, scene);
+  }*/
+
+  Dart_Handle addScene(Scene *scene)
+  {
+    std::unique_lock<std::mutex> lock(sharedData.critSec);
+
+    /*AtumScene* scene = new AtumScene;
+
+    scene->scene = new Scene;
+    scene->scene->Init();
+
+    sharedData.scenes.push_back(scene->scene);*/
+
+    Dart_Handle library = Dart_RootLibrary();
+    Dart_Handle sceneClass = Dart_GetClass(library, Dart_NewStringFromCString("Scene"));
+
+    return newObject(sceneClass, new AtumExt_Scene);
   }
+
+  /*Dart_Handle addPhysScene(Dart_Handle scene_type)
+  {
+    std::unique_lock<std::mutex> lock(sharedData.critSec);
+
+    AtumPhysScene* scene = new AtumPhysScene;
+
+    scene->scene = physics.CreateScene();
+
+    sharedData.physScenes.push_back(scene->scene);
+
+    return newObject(scene_type, scene);
+  }*/
 
   Dart_Handle controlsGetAlias(const char* name)
   {
@@ -817,7 +555,7 @@ public:
 
   void draw(float dt)
   {
-    if (!ready)
+    if (!sharedData.ready)
       return;
 
     //std::cout << __FUNCTION__ << " dt= " << dt << std::endl;
@@ -896,10 +634,14 @@ public:
   }
 };
 
+AtumCore::SharedData AtumCore::sharedData;
+
 NATIVE_METHOD_LIST(AtumCore,
   NATIVE_METHOD(AtumCore, init),
   NATIVE_METHOD(AtumCore, update),
-  NATIVE_METHOD(AtumCore, addScene, Dart_Handle),
+  NATIVE_METHOD(AtumCore, addScene, Scene*),
+//  NATIVE_METHOD(AtumCore, addScene, Dart_Handle),
+//  NATIVE_METHOD(AtumCore, addPhysScene, Dart_Handle),
   NATIVE_METHOD(AtumCore, controlsGetAlias, const char*),
   NATIVE_METHOD(AtumCore, controlsIsDebugKeyActive, const char*),
   NATIVE_METHOD(AtumCore, controlsIsDebugKeyPressed, const char*),

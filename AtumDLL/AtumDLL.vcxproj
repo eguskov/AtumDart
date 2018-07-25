@@ -171,7 +171,6 @@
     <ClInclude Include="..\..\Atum\Atum\Support\ClassFactory.h" />
     <ClInclude Include="..\..\Atum\Atum\Support\Color.h" />
     <ClInclude Include="..\..\Atum\Atum\Support\Delegate.h" />
-    <ClInclude Include="..\..\Atum\Atum\Support\ExceptionReport.h" />
     <ClInclude Include="..\..\Atum\Atum\Support\json\block_allocator.h" />
     <ClInclude Include="..\..\Atum\Atum\Support\json\json.h" />
     <ClInclude Include="..\..\Atum\Atum\Support\json\JSONReader.h" />
@@ -226,7 +225,6 @@
     <ClCompile Include="..\..\Atum\Atum\Services\Scene\Scene.cpp" />
     <ClCompile Include="..\..\Atum\Atum\Services\Scene\SceneObject.cpp" />
     <ClCompile Include="..\..\Atum\Atum\Services\TaskExecutor\TaskExecutor.cpp" />
-    <ClCompile Include="..\..\Atum\Atum\Support\ExceptionReport.cpp" />
     <ClCompile Include="..\..\Atum\Atum\Support\json\block_allocator.cpp" />
     <ClCompile Include="..\..\Atum\Atum\Support\json\json.cpp" />
     <ClCompile Include="..\..\Atum\Atum\Support\json\JSONReader.cpp" />

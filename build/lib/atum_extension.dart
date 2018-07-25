@@ -4,6 +4,7 @@
 
 library atum;
 
+import 'dart:io';
 import 'dart:async';
 import 'dart:isolate';
 
@@ -12,32 +13,71 @@ import 'package:vector_math/vector_math.dart';
 
 import 'dart-ext:AtumExt';
 
+import 'src/protocol.dart' as proto;
+
+// TODO: Generate gen.dart with list of files
+part 'SceneObject.gen.dart';
+part 'PhysBox.gen.dart';
+part 'Scene.gen.dart';
+part 'Terrain.gen.dart';
+
 int systemRand() native "SystemRand";
 int noScopeSystemRand() native "NoScopeSystemRand";
 bool systemSrand(int seed) native "SystemSrand";
 
-abstract class _Native extends NativeClass1 {
-  void _new();
-  void _setServicePort(SendPort port);
-  SendPort _getServicePort();
-  SendPort _newServicePort();
-  SendPort get _servicePort {
-    if (_getServicePort() == null) {
-      _setServicePort(_newServicePort());
-    }
-    return _getServicePort();
-  }
+class _Native extends NativeClass1 {
+  void _new() {}
 }
 
-class _NativeWithoutServicePort extends _Native {
-  @override
-  SendPort _getServicePort() => null;
+class IsolateConnection {
+  final ReceivePort portOnExit = new ReceivePort();
+  final ReceivePort portOnError = new ReceivePort();
+  final ReceivePort portOnMessage = new ReceivePort();
 
-  @override
-  SendPort _newServicePort() => null;
+  Isolate isolate;
+  SendPort peerPort;
 
-  @override
-  void _setServicePort(SendPort) {}
+  IsolateConnection() {
+    portOnExit.listen((message) {
+      print('portOnExit: ${message}');
+    });
+
+    portOnError.listen((message) {
+      print('portOnError: ${message}');
+    });
+
+    portOnMessage.listen((message) {
+      print('portOnMessage: ${message}');
+      if (message is SendPort) {
+        peerPort = message;
+      }
+    });
+  }
+
+  Future<bool> open(Uri uri) async {
+    isolate = await Isolate.spawnUri(uri, [portOnMessage.sendPort], null,
+        onExit: portOnExit.sendPort, onError: portOnError.sendPort);
+
+    if (isolate == null) {
+      return false;
+    }
+
+    var completer = new Completer();
+
+    Timer waitTimer;
+    waitTimer = new Timer.periodic(const Duration(milliseconds: 10), (_) {
+      if (peerPort != null) {
+        waitTimer.cancel();
+        completer.complete(true);
+      }
+    });
+
+    return completer.future;
+  }
+
+  send(message) async {
+    peerPort.send(proto.serialize(message));
+  }
 }
 
 class AtumCore extends _Native {
@@ -50,138 +90,39 @@ class AtumCore extends _Native {
   init() native "AtumCore::init";
   double update() native "AtumCore::update";
   int controlsGetAlias(String) native "AtumCore::controlsGetAlias";
-  bool controlsIsDebugKeyActive(String)
+  bool controlsIsDebugKeyActive(String key)
       native "AtumCore::controlsIsDebugKeyActive";
-  bool controlsIsDebugKeyPressed(String)
+  bool controlsIsDebugKeyPressed(String key)
       native "AtumCore::controlsIsDebugKeyPressed";
+  double controlsGetAliasValue(int alias, bool delta)
+      native "AtumCore::controlsGetAliasValue";
+  double renderGetWidth() native "AtumCore::renderGetWidth";
+  double renderGetHeight() native "AtumCore::renderGetHeight";
 
-  AtumScene _addScene(Type sceneType) native "AtumCore::addScene";
-  AtumScene addScene() => _addScene(AtumScene);
+  // AtumScene _addScene(Type sceneType) native "AtumCore::addScene";
+  // AtumScene addScene() => _addScene(AtumScene);
+  addScene(SceneObject scene) native "AtumCore::addScene";
 
-  // Future<bool> init() {
-  //   var completer = new Completer();
-  //   var replyPort = new RawReceivePort();
-  //   var args = new List(3);
-  //   args[0] = 1;
-  //   args[1] = _handle;
-  //   args[2] = replyPort.sendPort;
-  //   _servicePort.send(args);
-  //   replyPort.handler = (result) {
-  //     replyPort.close();
-  //     if (result != null) {
-  //       completer.complete(result);
-  //     } else {
-  //       completer.completeError(new Exception("AtumCore::Init failed"));
-  //     }
-  //   };
-  //   return completer.future;
-  // }
-
-  // Future<bool> init() {
-  //   var completer = new Completer();
-  //   var replyPort = new RawReceivePort();
-  //   var args = new List(3);
-  //   args[0] = 1;
-  //   args[1] = _handle;
-  //   args[2] = replyPort.sendPort;
-  //   _servicePort.send(args);
-  //   replyPort.handler = (result) {
-  //     replyPort.close();
-  //     if (result != null) {
-  //       completer.complete(result);
-  //     } else {
-  //       completer.completeError(new Exception("AtumCore::Init failed"));
-  //     }
-  //   };
-  //   return completer.future;
-  // }
-
-  // Future<bool> update() {
-  //   var completer = new Completer();
-  //   var replyPort = new RawReceivePort();
-  //   var args = new List(3);
-  //   args[0] = 2;
-  //   args[1] = _handle;
-  //   args[2] = replyPort.sendPort;
-  //   _servicePort.send(args);
-  //   replyPort.handler = (result) {
-  //     replyPort.close();
-  //     if (result != null) {
-  //       completer.complete(result);
-  //     } else {
-  //       completer.completeError(new Exception("AtumCore::Update failed"));
-  //     }
-  //   };
-  //   return completer.future;
-  // }
-
-  // Future<bool> run() {
-  //   var completer = new Completer();
-  //   var replyPort = new RawReceivePort();
-  //   var args = new List(3);
-  //   args[0] = 3;
-  //   args[1] = _handle;
-  //   args[2] = replyPort.sendPort;
-  //   _servicePort.send(args);
-  //   replyPort.handler = (result) {
-  //     replyPort.close();
-  //     if (result != null) {
-  //       completer.complete(result);
-  //     } else {
-  //       completer.completeError(new Exception("AtumCore::Run failed"));
-  //     }
-  //   };
-  //   return completer.future;
-  // }
-
-  ReceivePort portOnExit;
-  ReceivePort portOnError;
-  ReceivePort portOnMessage;
-
-  Isolate loadSceneIsolate(String path) async {
-    portOnExit = new ReceivePort();
-    portOnError = new ReceivePort();
-    portOnMessage = new ReceivePort();
-
-    portOnExit.listen((message) {
-      print('portOnExit: ${message}');
-    });
-
-    portOnError.listen((message) {
-      print('portOnError: ${message}');
-    });
-
-    portOnMessage.listen((message) {
-      print('portOnMessage: ${message}');
-    });
-
-    var uri = new Uri.file(path);
-    Isolate iso = await Isolate.spawnUri(uri, [], portOnMessage.sendPort,
-        onExit: portOnExit.sendPort, onError: portOnError.sendPort);
-
-    print(iso);
-
-    // iso.
-
-    return iso;
+  Future<IsolateConnection> loadSceneIsolate(String path) async {
+    var conn = new IsolateConnection();
+    bool res = await conn.open(new Uri.file(path));
+    return res ? conn : null;
   }
 
-  @override
-  SendPort _getServicePort() => _port;
-
-  @override
-  _setServicePort(SendPort port) {
-    _port = port;
+  SendPort get _servicePort {
+    if (_port == null) {
+      _port = _newServicePort();
+    }
+    return _port;
   }
 
   @override
   void _new() native "AtumCore::AtumCore";
 
-  @override
   SendPort _newServicePort() native "AtumCore::servicePort";
 }
 
-class AtumSceneObject extends _NativeWithoutServicePort {
+class AtumSceneObject extends _Native {
   Float32List _getTrans() native "AtumSceneObject::getTrans";
   Matrix4 get trans => new Matrix4.fromFloat32List(_getTrans());
 
@@ -211,23 +152,54 @@ class AtumTank extends AtumSceneObject {
   void _new() native "AtumTank::AtumTank";
 }
 
-class AtumScene extends _NativeWithoutServicePort {
+class AtumScene extends _Native {
+  List<AtumSceneObject> _objectsCache = [];
+
   AtumSceneObject _addObject(Type sceneObjectType, String typeName)
       native "AtumScene::addObject";
-  AtumSceneObjectaddObject(String typeName) =>
-      _addObject(AtumSceneObject, typeName);
+  AtumSceneObject addObject(String typeName, {Type type = AtumSceneObject}) =>
+      _addObject(type, typeName);
 
   load(String path) native "AtumScene::load";
   play() native "AtumScene::play";
 
   AtumSceneObject _getObject(Type sceneObjectType, int index)
       native "AtumScene::getObject";
-  AtumSceneObject getObject(int index) => _getObject(AtumSceneObject, index);
+  AtumSceneObject getObject(int index) {
+    if (index >= _objectsCache.length) {
+      _objectsCache.length = index + 1;
+    }
+
+    if (_objectsCache[index] == null) {
+      _objectsCache[index] = _getObject(AtumSceneObject, index);
+      if (_objectsCache[index].getClassName() == 'Tank') {
+        _objectsCache[index] = _objectsCache[index].cast(AtumTank);
+      }
+    }
+
+    return _objectsCache[index];
+  }
 
   int getObjectsCount() native "AtumScene::getObjectsCount";
 
   @override
   void _new() native "AtumScene::AtumScene";
+}
+
+class RayCastDesc {
+  Vector origin;
+  Vector dir;
+  Vector hitPos;
+  Vector hitNormal;
+
+  double length;
+}
+
+class AtumPhysScene extends _Native {
+  bool rayCast(RayCastDesc desc) native "AtumPhysScene::rayCast";
+
+  @override
+  void _new() native "AtumPhysScene::AtumPhysScene";
 }
 
 // A class caches the native port used to call an asynchronous extension.

@@ -1,0 +1,16 @@
+{
+  "includes": [
+    "Services/Scene/SceneObject.h"
+  ],
+  "includeClasses": [
+    "SceneObject"
+  ],
+  "excludeMethods": [
+    "GetMetaData",
+    "PScene",
+    "Tasks",
+    "RenderTasks",
+    "ApplyProperties",
+    "GetClassName"
+  ]
+}

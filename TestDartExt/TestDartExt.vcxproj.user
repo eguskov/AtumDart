@@ -4,6 +4,6 @@
     <LocalDebuggerCommand>C:\Program Files\Dart\dart-sdk\bin\dart.exe</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>$(SolutionDir)build</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>test.dart</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>test.1.dart</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

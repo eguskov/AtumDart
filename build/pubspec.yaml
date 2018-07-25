@@ -6,3 +6,4 @@ environment:
 
 dependencies:
   vector_math: any
+  crc32: any

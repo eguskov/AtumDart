@@ -1,0 +1,19 @@
+{
+  "deps": [
+    "SceneObject"
+  ],
+  "includes": [
+    "SceneObjects/PhysBox.h"
+  ],
+  "includeClasses": [
+    "PhysBox"
+  ],
+  "excludeMethods": [
+    "GetMetaData",
+    "PScene",
+    "Tasks",
+    "RenderTasks",
+    "ApplyProperties",
+    "GetClassName"
+  ]
+}

@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DartExt", "DartExt\DartExt.vcxproj", "{A279405B-EDC9-4463-9615-C8ADCC2201F9}"
 	ProjectSection(ProjectDependencies) = postProject
-		{86E1102E-F7DB-4C05-9EAD-510F473D72C5} = {86E1102E-F7DB-4C05-9EAD-510F473D72C5}
+		{DFE51B82-5888-4FE2-B0A6-6EC456F51BC9} = {DFE51B82-5888-4FE2-B0A6-6EC456F51BC9}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestDartExt", "TestDartExt\TestDartExt.vcxproj", "{80970039-6A20-4F5F-8963-62A085667B0C}"
@@ -13,7 +13,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestDartExt", "TestDartExt\
 		{A279405B-EDC9-4463-9615-C8ADCC2201F9} = {A279405B-EDC9-4463-9615-C8ADCC2201F9}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AtumDLL", "AtumDLL\AtumDLL.vcxproj", "{86E1102E-F7DB-4C05-9EAD-510F473D72C5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Codegen", "Codegen\Codegen.vcxproj", "{DFE51B82-5888-4FE2-B0A6-6EC456F51BC9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,14 +39,14 @@ Global
 		{80970039-6A20-4F5F-8963-62A085667B0C}.Release|x64.Build.0 = Release|x64
 		{80970039-6A20-4F5F-8963-62A085667B0C}.Release|x86.ActiveCfg = Release|Win32
 		{80970039-6A20-4F5F-8963-62A085667B0C}.Release|x86.Build.0 = Release|Win32
-		{86E1102E-F7DB-4C05-9EAD-510F473D72C5}.Debug|x64.ActiveCfg = Debug|x64
-		{86E1102E-F7DB-4C05-9EAD-510F473D72C5}.Debug|x64.Build.0 = Debug|x64
-		{86E1102E-F7DB-4C05-9EAD-510F473D72C5}.Debug|x86.ActiveCfg = Debug|Win32
-		{86E1102E-F7DB-4C05-9EAD-510F473D72C5}.Debug|x86.Build.0 = Debug|Win32
-		{86E1102E-F7DB-4C05-9EAD-510F473D72C5}.Release|x64.ActiveCfg = Release|x64
-		{86E1102E-F7DB-4C05-9EAD-510F473D72C5}.Release|x64.Build.0 = Release|x64
-		{86E1102E-F7DB-4C05-9EAD-510F473D72C5}.Release|x86.ActiveCfg = Release|Win32
-		{86E1102E-F7DB-4C05-9EAD-510F473D72C5}.Release|x86.Build.0 = Release|Win32
+		{DFE51B82-5888-4FE2-B0A6-6EC456F51BC9}.Debug|x64.ActiveCfg = Debug|x64
+		{DFE51B82-5888-4FE2-B0A6-6EC456F51BC9}.Debug|x64.Build.0 = Debug|x64
+		{DFE51B82-5888-4FE2-B0A6-6EC456F51BC9}.Debug|x86.ActiveCfg = Debug|Win32
+		{DFE51B82-5888-4FE2-B0A6-6EC456F51BC9}.Debug|x86.Build.0 = Debug|Win32
+		{DFE51B82-5888-4FE2-B0A6-6EC456F51BC9}.Release|x64.ActiveCfg = Release|x64
+		{DFE51B82-5888-4FE2-B0A6-6EC456F51BC9}.Release|x64.Build.0 = Release|x64
+		{DFE51B82-5888-4FE2-B0A6-6EC456F51BC9}.Release|x86.ActiveCfg = Release|Win32
+		{DFE51B82-5888-4FE2-B0A6-6EC456F51BC9}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -13,9 +13,6 @@
     <ClInclude Include="..\..\Atum\Atum\Support\Delegate.h">
       <Filter>Support</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Atum\Atum\Support\ExceptionReport.h">
-      <Filter>Support</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Atum\Atum\Support\Matrix.h">
       <Filter>Support</Filter>
     </ClInclude>
@@ -192,9 +189,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Atum\Atum\Support\ExceptionReport.cpp">
-      <Filter>Support</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Atum\Atum\Support\StringUtils.cpp">
       <Filter>Support</Filter>
     </ClCompile>

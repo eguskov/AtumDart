@@ -1,0 +1,20 @@
+{
+  "deps": [
+    "SceneObject"
+  ],
+  "includes": [
+    "SceneObjects/Terrain.h"
+  ],
+  "includeClasses": [
+    "Terrain"
+  ],
+  "excludeMethods": [
+    "GetMetaData",
+    "PScene",
+    "Tasks",
+    "RenderTasks",
+    "ApplyProperties",
+    "GetClassName",
+    "Render"
+  ]
+}
